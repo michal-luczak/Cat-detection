@@ -44,7 +44,7 @@ def is_cat(image_path):
         return max_class, None
 
 
-image_path = 'pobrane.jpg'
+image_path = 'wolf.jpg'
 max_class, max_prob = is_cat(image_path)
 translator = {
     281: "tabby cat",
