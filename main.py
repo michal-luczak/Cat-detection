@@ -95,7 +95,7 @@ def upload_file():
             'isCat': False if not predictions else True,
             **({'predictions': predictions} if predictions is not None else {})
         }
-        if error_messages is not None and predictions is None:
+        if len(error_messages) > 1:
             results['errors'].append(error_messages)
 
     # Send response with 200 (Success)

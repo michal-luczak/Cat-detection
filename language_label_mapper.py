@@ -19,7 +19,7 @@ def translate(to_translate, lang):
         for index, label_info in to_translate.items():
             label = label_info.get("label")
             to_translate[index]["label"] = config.get(label).data
-        return to_translate, None
+        return to_translate, []
     except Exception as e:
         error_message = f"Error translating labels: {e}"
         print(error_message)

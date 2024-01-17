@@ -25,7 +25,7 @@ def validate(request):
 
         # Case 3 -> if some of the images has wrong extension
         for img in images:
-            if imghdr.what(img) not in allowed_extensions:
+            if not img.filename.lower().endswith(('.png', '.jpg', '.jpeg')):
                 raise ValueError(f"Given file '{img.filename}' has no allowed extension. "
                                  f"Allowed extensions: {allowed_extensions}.")
     except Exception as e:
