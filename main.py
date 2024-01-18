@@ -1,37 +1,105 @@
-from flask import Flask, request, jsonify, session
+from flask import Flask, request, Response, json
+from cat_detection import detect_cat
+from language_label_mapper import translate
+from validator import validate
 
-from cat_detection import is_cat
+""" 
+    Flask Rest API application to cat recognition.
+    If request is valid then send response with results of recognition.
+    If key named 'Image' in body does not occurred then returns 400 (BAD REQUEST).
+    Otherwise returns 200 with results of recognition.
+    Format of response:
+        {
+            "lang": {users_lang},
+            "results": {
+                {filename}: {
+                    "isCat": {is_cat},
+                    "results": {
+                        "1": {result}
+                        "2": {result}
+                        "3": {result}
+                        ...
+                        "10" {result}
+                    }
+                },
+                ...
+            },
+            errors[
+                {error_message},
+                {error_message},
+                ...
+            ]
+        }
+    To see result format -> cat_detection.py
+"""
+
 
 # Define flask app
 app = Flask(__name__)
 app.secret_key = 'secret_key'
 
+# Available cats
+list_of_labels = [
+    'lynx',
+    'lion',
+    'tiger',
+    'cheetah',
+    'leopard',
+    'jaguar',
+    'tabby',
+    'Egyptian_cat',
+    'cougar',
+    'Persian_cat',
+    'Siamese_cat',
+    'snow_leopard',
+    'tiger_cat'
+]
 
-@app.route('/detect-cat', methods=['POST'])
+# Available languages
+languages = {'pl', 'en'}
+
+
+@app.route('/api/v1/detect-cat', methods=['POST'])
 def upload_file():
-    # 'Key' in body should be named as 'image'. Type should be 'File' and in 'Value' we should upload image from disc.
-    file = request.files['image']
-    if file.filename == '':
-        return jsonify({'error': "File name is empty. Please name a file."}), 400
-    max_class, max_prob = is_cat(file)
+    # Validate request
+    error_messages = validate(request)
 
-    # Save result in session
-    session['result'] = max_class, max_prob
+    # If any errors occurred, return 400 (BAD REQUEST)
+    if len(error_messages) > 0:
+        errors = json.dumps(
+            {
+                'errors': error_messages
+            }
+        )
+        return Response(errors, status=400, mimetype='application/json')
 
-    # Tworzenie komunikatu na podstawie wyniku analizy zdjęcia
-    translator = {
-        281: "tabby cat",
-        282: "tiger cat",
-        283: "persian cat",
-        284: "siamese cat",
-        285: "egyptian cat"
+    # Get files from request
+    files = request.files.getlist('image')
+
+    # Get user's language (Value in header 'Accept-Language'). Default value is English
+    lang = request.accept_languages.best_match(languages, default='en')
+
+    # Define JSON structure for results
+    results = {
+        'lang': lang,
+        'results': {},
+        'errors': []
     }
-    if max_prob is not None:
-        result = f"The image is recognized as '{translator[max_class]}' with a probability of {round(max_prob * 100, 2)}%"
-    else:
-        result = f"The image is not recognized as a class within the range 281-285 ({max_class})"
 
-    return jsonify({'result': result}), 200
+    # Generate results
+    for file in files:
+        predictions = detect_cat(file, list_of_labels)
+        if predictions is not None:
+            predictions, error_messages = translate(predictions, lang)
+        results['results'][file.filename] = {
+            'isCat': False if not predictions else True,
+            **({'predictions': predictions} if predictions is not None else {})
+        }
+        if len(error_messages) > 1:
+            results['errors'].append(error_messages)
+
+    # Send response with 200 (Success)
+    return Response(json.dumps(results), status=200, mimetype='application/json')
 
 
 if __name__ == '__main__':
