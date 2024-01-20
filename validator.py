@@ -1,5 +1,3 @@
-import imghdr
-
 """
     Validation method.
     If everything fine then returns empty list.

@@ -1,3 +1,5 @@
+import os
+
 from jproperties import Properties
 
 """
@@ -10,9 +12,11 @@ from jproperties import Properties
 def translate(to_translate, lang):
     try:
         config = Properties()
+        script_directory = os.path.dirname(os.path.abspath(__file__))
+        resources_path = os.path.join(script_directory, "./resources")
 
         # Load properties file for given lang
-        with open(f"resources/{lang}.properties", 'rb') as config_file:
+        with open(os.path.join(resources_path, f"./{lang}.properties"), 'rb') as config_file:
             config.load(config_file, encoding='UTF-8')
 
         # Translate labels for given to_translate dictionary
