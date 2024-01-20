@@ -1,0 +1,10 @@
+version: '3.3'
+
+services:
+  cat-detection:
+    image: cat-detection
+    build:
+      context: ../
+      dockerfile: ./docker/Dockerfile
+    ports:
+      - "5000:5000"
