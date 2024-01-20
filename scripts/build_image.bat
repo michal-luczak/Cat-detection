@@ -13,11 +13,11 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-cd ../docker
+cd %~dp0
 echo [32mBuilding docker image...[0m
-docker compose build cat-detection
+docker-compose -f ../docker/docker-compose.yml build
 if %errorlevel% neq 0 (
-    echo [31mBuilding cdocker imagew failed.[0m
+    echo [31mBuilding docker image failed.[0m
     exit /b 1
 )
 
