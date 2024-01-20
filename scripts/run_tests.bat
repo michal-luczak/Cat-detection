@@ -1,8 +1,6 @@
 @echo off
 echo [32mRunning unit tests.[0m
 
-set PYTHONPATH=%CD%;%PYTHONPATH%
-
 cd %~dp0
 pytest ../tests
 
